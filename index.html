@@ -74,30 +74,6 @@
   particlesJS("particles-right", cfgRight);
 </script>
   
-  <!-- Site footer with view counter (uses CountAPI) -->
-  <footer class="site-footer">
-    <div id="view-counter">Site views:<span id="view-count">…</span></div>
-  </footer>
-
-  <script>
-    (function(){
-      const namespace = 'zaansaeed.github.io';
-      const key = 'siteviews';
-      const el = document.getElementById('view-count');
-      if(!el) return;
-      // increment and fetch
-      fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
-        .then(r=>r.json())
-        .then(d=>{ if(typeof d.value!=='undefined') el.textContent = d.value.toLocaleString(); else el.textContent = '—'; })
-        .catch(err=>{
-          console.error('CountAPI error', err);
-          // fallback: try get
-          fetch(`https://api.countapi.xyz/get/${namespace}/${key}`)
-            .then(r=>r.json()).then(d=>{ el.textContent = d.value?d.value.toLocaleString():'—'; })
-            .catch(()=>{ el.textContent = '—'; });
-        });
-    })();
-  </script>
 
 </body>
 
