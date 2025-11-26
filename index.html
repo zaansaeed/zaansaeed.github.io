@@ -19,7 +19,7 @@
 <body>
     <div id="particles-left"></div>
    <div id="particles-right"></div>
-    <img src="./images/profile.png" alt="Profile Picture" style="margin-top:50px;margin-bottom:0; width:200px; height:auto; border:2px solid #ccc; border-radius:35%;">
+    <img src="./images/profile.png" alt="Profile Picture" style="margin-top:50px;margin-bottom:0; width:200px; height:auto; border:2px solid #444; border-radius:35%;">
     <header>
         <h1 class="name">Zaan Saeed</h1>
         <!--<p>Email | Resume</p>-->
@@ -34,6 +34,7 @@
     <section id="projects">
         <h2>Projects</h2>
         <ul>
+            <li><a href="./pages/peptide-permeability-prediction.html">ML for the Prediction of Peptide Permeability</a></li>
             <li><a href=./pages/peptide-cyclization-prediction.html>ML for the Prediction of Peptide Cyclization</a></li>
             <li><a href=./pages/fake-news-detector.html>Fake News Detector</a></li>
             <li><a href="https://github.com/Zaan101/Zaan101.github.io">Personal Portfolio Website</a></li>
@@ -43,12 +44,12 @@
  <script>
   const cfgLeft = {
     particles: {
-      number: { value: 30, density: { enable: true, value_area: 800 } },
-      color: { value: "#00008B" },
+      number: { value: 40, density: { enable: true, value_area: 800 } },
+      color: { value: "#4da6ff" },
       shape: { type: "circle" },
-      opacity: { value: 0.5 },
+      opacity: { value: 0.75 },
       size: { value: 2 },
-      line_linked: { enable: true, distance: 150, color: "#00008B", opacity: 0.4, width: 1 },
+      line_linked: { enable: true, distance: 150, color: "#4da6ff", opacity: 0.45, width: 1 },
       move: { enable: true, speed: 1 }
     },
     interactivity: {
@@ -73,6 +74,31 @@
   particlesJS("particles-right", cfgRight);
 </script>
   
+  <!-- Site footer with view counter (uses CountAPI) -->
+  <footer class="site-footer">
+    <div id="view-counter">Site views:<span id="view-count">…</span></div>
+  </footer>
+
+  <script>
+    (function(){
+      const namespace = 'zaansaeed.github.io';
+      const key = 'siteviews';
+      const el = document.getElementById('view-count');
+      if(!el) return;
+      // increment and fetch
+      fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
+        .then(r=>r.json())
+        .then(d=>{ if(typeof d.value!=='undefined') el.textContent = d.value.toLocaleString(); else el.textContent = '—'; })
+        .catch(err=>{
+          console.error('CountAPI error', err);
+          // fallback: try get
+          fetch(`https://api.countapi.xyz/get/${namespace}/${key}`)
+            .then(r=>r.json()).then(d=>{ el.textContent = d.value?d.value.toLocaleString():'—'; })
+            .catch(()=>{ el.textContent = '—'; });
+        });
+    })();
+  </script>
+
 </body>
 
 </html>

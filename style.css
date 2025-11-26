@@ -136,10 +136,11 @@ span.highlight {
 }
 
 .colored-box {
-    color: black;
-    padding: 20px;
-    display: inline-block;
-    border-radius: 10px;
+  color: #e6e6e6;
+  padding: 20px;
+  display: inline-block;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.02);
 }
 /* latin-ext */
 @font-face {
@@ -289,8 +290,9 @@ body {
   margin: 0;
   padding: 0;
   text-align: center;
-  background-color: #ffffff;
-  color: #111;
+  background-color: #0f1620; /* slightly lighter dark background */
+  color: #e6e6e6; /* light grey text */
+  transition: background-color 180ms linear, color 180ms linear;
 }
 
 header {
@@ -313,13 +315,13 @@ h1.name {
 header p {
   font-size: 1.1rem;
   margin-top: 10px;
-  color: #000000;
+  color: #dcdcdc;
 }
 
 section h2 {
   font-size: 1.4rem;
   margin-bottom: 10px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #262626;
   padding-bottom: 4px;
 }
 
@@ -342,7 +344,7 @@ ul li {
   position: fixed;
   top: 0;
   height: 100vh;
-  z-index: 1;
+  z-index: 0; /* behind main content */
   pointer-events: none;
 }
 
@@ -370,3 +372,17 @@ ul li {
     display: none;
   }
 }
+
+/* Footer / view counter */
+.site-footer {
+  text-align: center;
+  padding: 12px 8px;
+  color: #aebac6;
+  font-size: 0.92rem;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  margin-top: 40px;
+  position: relative;
+  z-index: 2; /* above particles */
+}
+.site-footer a { color: #9fc6ff; }
+#view-count { font-weight: 700; margin-left: 6px; color: #ffffff; }

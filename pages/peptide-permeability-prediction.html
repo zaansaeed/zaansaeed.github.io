@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Prediction of Cyclic Peptide Membrane Permeability - Zaan Saeed</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="icon" href="../images/protein.ico" type="image/x-icon">
+  
+  <!-- MathJax for LaTeX rendering -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</head>
+<body>
+    <header>
+        <h1 class="name">ML for the Prediction of Cyclic Peptide Membrane Permeability</h1>
+        <nav>
+            <a href="../index.html">← Back to Home</a>
+        </nav>
+    </header>
+    
+    
+    <section id="project-details">
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <img src="../images/permeability_workflow.png" alt="Peptide permeability prediction workflow"
+                style="width: clamp(480px, 50vw, 860px); height: auto; margin: 12px auto 24px; border-radius: 10px; background: #ffffff; padding: 8px; border: 1px solid #ddd;">
+        </div>
+        <h2>Project Overview</h2> 
+        <p>This project predicts membrane permeability of cyclic hexapeptides using machine learning based on monomer LogP descriptors and chirality features. 
+            Utilizing data from the Cyclic Peptide Membrane Permeability Database (CycPeptMPDB), we developed a Random Forest model that achieves strong predictive 
+            performance (\(R^2 = 0.779\), RMSE \(= 0.359\)). Beyond prediction, the framework enables rational design of cell-penetrating peptides 
+            by allowing users to specify positional constraints and target permeabilities, then generating viable monomer candidates that satisfy these criteria.
+        </p>
+        
+        <h3>Languages and Libraries Used</h3>
+        <ul>
+            <li><strong>Languages:</strong> Python</li>
+            <li><strong>Core libs:</strong> scikit-learn, pandas, numpy, matplotlib</li>
+            <li><strong>Cheminformatics:</strong> RDKit (Wildman–Crippen LogP calculation from SMILES)</li>
+            <li><strong>Model interpretability:</strong> SHAP (feature importance analysis)</li>
+        </ul>
+
+        <h3>Key Features</h3>
+        <ul>
+            <li><strong>Predictive model</strong>: Random Forest Regression trained on 2,054 cyclic peptides with experimental PAMPA permeability measurements (LogP\(_{\text{exp}}\) ranging from \(-10\) to \(-4\) cm/s).</li>
+            <li><strong>Feature space</strong>: 12-dimensional input comprising six monomer LogP values and six binary chirality indicators (L/D configuration).</li>
+            <li><strong>Hyperparameter optimization</strong>: Random search with 5-fold cross-validation over 300 iterations.</li>
+            <li><strong>Interpretability</strong>: SHAP analysis reveals feature contributions and guides design decisions.</li>
+        </ul>
+
+        <h3>Links</h3>
+        <p>
+            <a href="https://github.com/yourusername/peptide-permeability" target="_blank">View on GitHub</a>
+            <!-- Add paper/poster link -->
+        </p>
+
+        <!-- Separator for design methodology section -->
+        <hr style="margin: 48px 0; border: none; border-top: 2px solid #ddd;">
+
+        <h2 style="margin-top: 48px; margin-bottom: 24px;">Computational Design Framework</h2>
+        <p>The framework enables rational peptide engineering through a constraint-based optimization pipeline. Users specify:</p>
+        <ul>
+            <li><strong>Positional constraints</strong>: LogP ranges (e.g., [0.5, 1.2]) or discrete values for specific residue positions</li>
+            <li><strong>Chirality preferences</strong>: Fixed L/D configuration at desired positions, or random assignment elsewhere</li>
+            <li><strong>Target permeability</strong>: Desired LogP\(_{\text{exp}}\) value with tolerance \(\varepsilon\)</li>
+        </ul>
+        
+        <p><strong>Design Pipeline:</strong></p>
+        
+        <p><strong>Step 1 – Feature space exploration:</strong> Generate 20,000 candidates through bootstrapping with Gaussian noise injection:</p>
+        <p style="text-align: center;">
+            \[
+            \mathbf{X}'_{\text{LogP}} = \mathbf{X}_{\text{LogP}}^{\text{boot}} + \alpha \cdot (\boldsymbol{\varepsilon} \odot \boldsymbol{\sigma})
+            \]
+        </p>
+        <p>where \(\mathbf{X}_{\text{LogP}}^{\text{boot}} \in \mathbb{R}^{20000 \times 6}\) is resampled from the training set, 
+           \(\varepsilon_{ij} \sim \mathcal{N}(0, 1)\) adds positional variability, 
+           \(\boldsymbol{\sigma}\) scales noise by feature standard deviation, and \(\alpha = 0.5\) controls perturbation intensity.</p>
+        
+        <p><strong>Step 2 – Apply constraints:</strong> User-defined LogP and chirality constraints are enforced at each of the six positions. 
+           Values outside specified ranges are clamped to boundaries; discrete values override all samples at that position.</p>
+        
+        <p><strong>Step 3 – Permeability filtering:</strong> The model predicts permeability for all candidates, retaining only those within tolerance of the target:</p>
+        <p style="text-align: center;">
+            \[
+            \mathbf{X}_{\text{filtered}} = \{\mathbf{x}'_i \mid |\hat{y}(\mathbf{x}'_i) - y_{\text{target}}| \leq \varepsilon\}
+            \]
+        </p>
+        
+        <p><strong>Step 4 – Candidate generation:</strong> For each residue position, the framework outputs:</p>
+        <ul>
+            <li>Summary statistics (min, 25th/50th/75th percentiles, max) of LogP values across filtered samples</li>
+            <li>All viable monomers from the 385-monomer pool whose LogP falls within the observed range</li>
+        </ul>
+        
+        <p>This allows chemists to identify specific amino acids that satisfy both structural constraints (e.g., cyclization requirements) 
+           and functional goals (membrane permeability for cellular uptake).</p>
+        
+    </section>
+
+</body>
+</html>
