@@ -397,3 +397,52 @@ ul li {
 
 /* keep main content visible above footer */
 body { padding-bottom: 72px; }
+/* "Latest" pill for the most recent project */
+.badge-latest {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border: 1px solid #f09228;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f09228;
+  vertical-align: 1px;
+}
+
+/* contact line under the name */
+.contact {
+  margin-top: 8px;
+  font-size: 1rem;
+}
+
+/* experience entries */
+.experience-list li {
+  list-style: none;
+  margin-left: 0;
+  margin-bottom: 18px;
+}
+
+.role-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 12px;
+}
+
+.role-title {
+  flex: 1 1 auto;
+}
+
+.role-date {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: #9aa7b4;
+  white-space: nowrap;
+}
+
+.experience-list p {
+  margin: 4px 0 0;
+}
