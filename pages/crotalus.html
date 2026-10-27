@@ -24,10 +24,18 @@
         anyone <code>pip install</code>s them.
         </p>
         <p>
-        The pipeline handles roughly 12,000 releases a day, with horizontally scalable workers pulling from a PostgreSQL
+        The pipeline handles roughly 6,000 releases a day, with horizontally scalable workers pulling from a PostgreSQL
         job queue. On a benchmark of 495 known-malicious packages it flags 89% of them, while correctly leaving 974 of
         996 popular, benign packages alone.
         </p>
+
+        <h3> A successful find</h3>
+        <p> At approximately 9:15:18 AM PST on 10/27/26, a malicious package called numprint (<li><a href=https://osv.dev/vulnerability/MAL-2026-18343 target="_blank" rel="noopener"> osv.dev finding </a></li>) was uploaded to PyPI, in which during installation in setup.py, malicious code is executed.
+            Crotalus successfully found the package 6 seconds later, where it was labelled as likely_malicious, and 36 seconds later, it was triaged via LLM also as likely_malicious. This was 33 minutes and 23 seconds ahead of the OSV public advisory, where it was then pulled from PyPI.
+            This was 
+
+        </p>
+        
 
         <h3>How It Works</h3>
         <ul>
