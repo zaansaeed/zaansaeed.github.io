@@ -20,19 +20,19 @@
         <h2>Project Overview</h2>
         <p>
         crotalus is a real-time supply-chain malware scanner for PyPI. It watches the package index for new releases,
-        pulls each sdist and wheel, and decides whether the code inside is malicious — typically within about 22 seconds
+        pulls each sdist and wheel, and decides whether the code inside is malicious, typically within about 22 seconds
         of upload. The goal is to catch typosquats, malicious install hooks, and hijacked legitimate libraries before
         anyone <code>pip install</code>s them.
         </p>
         <p>
-        The pipeline handles roughly 6,000 releases a day, with horizontally scalable workers pulling from a PostgreSQL
+        The pipeline handles roughly 11,000 releases a day, with horizontally scalable workers pulling from a PostgreSQL
         job queue. On a benchmark of 495 known-malicious packages it flags 89% of them, while correctly leaving 974 of
         996 popular, benign packages alone.
         </p>
 
         <h3 class="live-head"><span class="live-dot" aria-hidden="true"></span>Recently Flagged<span class="live-meta" id="flagged-meta"></span></h3>
         <p>
-        Straight from the running pipeline &mdash; the ten most recent releases crotalus flagged, refreshed every five minutes.
+        Straight from the running pipeline. The ten most recent releases crotalus flagged (suspicious or likely malicious), refreshed every five minutes.
         <a href="https://api.crotalus.xyz/flagged?limit=10" target="_blank" rel="noopener">Raw API</a>
         </p>
         <div class="flagged-wrap">
@@ -65,7 +65,7 @@
                 <p>
                 Uploaded 27 Oct 2026 at 9:15:18 AM PST, executing malicious code from <code>setup.py</code> during
                 installation. crotalus flagged it <strong>likely_malicious</strong> 6 seconds after upload, and LLM
-                triage agreed 30 seconds after that &mdash; 33 minutes and 23 seconds before the
+                triage agreed 30 seconds after that. 33 minutes and 23 seconds before the
                 <a href="https://osv.dev/vulnerability/MAL-2026-18343" target="_blank" rel="noopener">OSV advisory</a>
                 went public and the package was pulled.
                 </p>
@@ -85,7 +85,7 @@
         <ul>
             <li><strong>Languages:</strong> Python, Go, SQL</li>
             <li><strong>Data:</strong> PostgreSQL (also used as the job queue)</li>
-            <li><strong>Infrastructure:</strong> Docker, AWS EC2</li>
+            <li><strong>Infrastructure:</strong> Docker, AWS EC2, Caddy</li>
             <li><strong>LLM:</strong> Gemini API for near-miss triage</li>
         </ul>
 
