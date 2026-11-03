@@ -397,21 +397,6 @@ ul li {
 
 /* keep main content visible above footer */
 body { padding-bottom: 72px; }
-/* "Latest" pill for the most recent project */
-.badge-latest {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 1px 7px;
-  border: 1px solid #f09228;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #f09228;
-  vertical-align: 1px;
-}
-
 /* contact line under the name */
 .contact {
   margin-top: 8px;
@@ -577,3 +562,43 @@ table.flagged tr:last-child td { border-bottom: none; }
 }
 
 .finds li p { margin: 5px 0 0; }
+
+/* small utility */
+.text-centered { text-align: center; }
+
+/* featured "newest project" card */
+#newest { margin-bottom: 36px; }
+
+.featured {
+  display: block;
+  padding: 16px 18px;
+  border: 1px solid #25303d;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.featured:hover,
+.featured:focus {
+  border-color: #1772d0;
+  background: rgba(23, 114, 208, 0.07);
+}
+
+.featured-title {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1772d0;
+  margin-bottom: 5px;
+  transition: color 160ms ease;
+}
+
+.featured:hover .featured-title,
+.featured:focus .featured-title { color: #f09228; }
+
+.featured-desc {
+  display: block;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #dcdcdc;
+}
