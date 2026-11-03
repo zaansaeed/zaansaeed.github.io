@@ -446,3 +446,134 @@ body { padding-bottom: 72px; }
 .experience-list p {
   margin: 4px 0 0;
 }
+
+/* live flagged-packages feed (crotalus) */
+.live-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #36d399;
+  display: inline-block;
+  flex: none;
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+}
+
+.live-meta {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #9aa7b4;
+  white-space: nowrap;
+}
+
+.flagged-wrap {
+  overflow-x: auto;
+  margin: 12px 0 8px;
+}
+
+table.flagged {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+table.flagged th {
+  text-align: left;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #9aa7b4;
+  border-bottom: 1px solid #25303d;
+  padding: 0 12px 6px 0;
+  white-space: nowrap;
+}
+
+table.flagged td {
+  padding: 8px 12px 8px 0;
+  border-bottom: 1px solid #1b2430;
+  vertical-align: baseline;
+}
+
+table.flagged tr:last-child td { border-bottom: none; }
+
+.pkg-name { font-weight: 700; word-break: break-all; }
+.pkg-ver, .pkg-seen { color: #9aa7b4; white-space: nowrap; }
+.score-cell { font-variant-numeric: tabular-nums; color: #dcdcdc; }
+
+.verdict {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.verdict[data-v="likely_malicious"] { color: #ff6b6b; border-color: #ff6b6b; }
+.verdict[data-v="suspicious"]       { color: #f09228; border-color: #f09228; }
+.verdict[data-v="benign"]           { color: #9aa7b4; border-color: #3a4654; }
+
+.flagged-status {
+  color: #9aa7b4;
+  font-size: 0.85rem;
+  padding: 10px 0;
+}
+
+@media (max-width: 560px) {
+  table.flagged .col-opt { display: none; }
+}
+
+/* confirmed finds (crotalus) */
+.finds li {
+  list-style: none;
+  margin-left: 0;
+  margin-bottom: 18px;
+  padding-left: 12px;
+  border-left: 2px solid #25303d;
+}
+
+.find-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.find-pkg {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.find-lead {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #36d399;
+  border: 1px solid #36d399;
+  border-radius: 999px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
+.finds li p { margin: 5px 0 0; }

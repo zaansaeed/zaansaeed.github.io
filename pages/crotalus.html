@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>crotalus - Zaan Saeed</title>
-  <link rel="stylesheet" href="../style.css?v=2">
+  <link rel="stylesheet" href="../style.css?v=4">
   <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
 </head>
 <body>
@@ -29,13 +30,47 @@
         996 popular, benign packages alone.
         </p>
 
-        <h3> A successful find</h3>
-        <p> At approximately 9:15:18 AM PST on 10/27/26, a malicious package called numprint (<a href=https://osv.dev/vulnerability/MAL-2026-18343 target="_blank" rel="noopener"> osv.dev finding </a>) was uploaded to PyPI, in which during installation in setup.py, malicious code is executed.
-            Crotalus successfully found the package 6 seconds later, where it was labelled as likely_malicious, and 36 seconds later, it was triaged via LLM also as likely_malicious. This was 33 minutes and 23 seconds ahead of the OSV public advisory, where it was then pulled from PyPI.
-
-
+        <h3 class="live-head"><span class="live-dot" aria-hidden="true"></span>Recently Flagged<span class="live-meta" id="flagged-meta"></span></h3>
+        <p>
+        Straight from the running pipeline &mdash; the ten most recent releases crotalus flagged, refreshed every five minutes.
+        <a href="https://api.crotalus.xyz/flagged?limit=10" target="_blank" rel="noopener">Raw API</a>
         </p>
-        
+        <div class="flagged-wrap">
+            <div class="flagged-status" id="flagged-status">Loading live feed&hellip;</div>
+            <table class="flagged" id="flagged-table" hidden>
+                <thead>
+                    <tr>
+                        <th>Package</th>
+                        <th class="col-opt">Version</th>
+                        <th class="col-opt">Score</th>
+                        <th>Verdict</th>
+                        <th>First seen</th>
+                    </tr>
+                </thead>
+                <tbody id="flagged-body"></tbody>
+            </table>
+        </div>
+
+        <h3>Confirmed Finds</h3>
+        <p>
+        Releases crotalus flagged that were later confirmed malicious and pulled from PyPI. Lead time runs from
+        upload to the public advisory.
+        </p>
+        <ul class="finds">
+            <li>
+                <div class="find-head">
+                    <span class="find-pkg">numprint</span>
+                    <span class="find-lead">33m 23s ahead of OSV</span>
+                </div>
+                <p>
+                Uploaded 27 Oct 2026 at 9:15:18 AM PST, executing malicious code from <code>setup.py</code> during
+                installation. crotalus flagged it <strong>likely_malicious</strong> 6 seconds after upload, and LLM
+                triage agreed 30 seconds after that &mdash; 33 minutes and 23 seconds before the
+                <a href="https://osv.dev/vulnerability/MAL-2026-18343" target="_blank" rel="noopener">OSV advisory</a>
+                went public and the package was pulled.
+                </p>
+            </li>
+        </ul>
 
         <h3>How It Works</h3>
         <ul>
@@ -60,6 +95,113 @@
         </ul>
 
     </section>
+
+<script>
+(function () {
+  var API = 'https://api.crotalus.xyz/flagged?limit=10';
+  var tbl = document.getElementById('flagged-table');
+  var body = document.getElementById('flagged-body');
+  var status = document.getElementById('flagged-status');
+  var meta = document.getElementById('flagged-meta');
+  if (!tbl) return;
+
+  function ago(iso) {
+    var t = Date.parse(iso);
+    if (isNaN(t)) return '—';
+    var s = Math.round((Date.now() - t) / 1000);
+    if (s < 0) s = 0;
+    if (s < 60) return s + 's ago';
+    var m = Math.round(s / 60);
+    if (m < 60) return m + 'm ago';
+    var h = Math.round(m / 60);
+    if (h < 48) return h + 'h ago';
+    return Math.round(h / 24) + 'd ago';
+  }
+
+  function create_cell(cls) {
+    var d = document.createElement('td');
+    if (cls) d.className = cls;
+    return d;
+  }
+
+  function create_row(p) {
+    // create the row for the package
+    var tr = document.createElement('tr');
+
+    var c1 = create_cell(); //first cell in row, the name + URL
+    var a = document.createElement('a'); //link
+    a.className = 'pkg-name';
+    a.href = 'https://pypi.org/project/' + encodeURIComponent(p.name) + '/';
+    a.target = '_blank';
+    a.rel = 'noopener nofollow';
+    a.textContent = p.name;
+    c1.appendChild(a);
+
+    // collect version
+    var c2 = create_cell('pkg-ver col-opt');
+    c2.textContent = p.version || '—';
+
+    //collect score
+    var c3 = create_cell('score-cell col-opt');
+    c3.textContent = (p.score === null || p.score === undefined) ? '—' : p.score;
+
+    // collect verdict
+    var c4 = create_cell();
+    var b = document.createElement('span');
+    var v = String(p.final_verdict || 'unknown');
+    b.className = 'verdict';
+    b.setAttribute('data-v', v);
+    b.textContent = v.replace(/_/g, ' ');
+    c4.appendChild(b);
+
+    //collect seen
+    var c5 = create_cell('pkg-seen');
+    c5.textContent = ago(p.first_seen_at);
+    if (p.first_seen_at) c5.title = p.first_seen_at;
+
+    //append them all to our row
+    [c1, c2, c3, c4, c5].forEach(function (c) { tr.appendChild(c); });
+
+    // return row
+    return tr;
+  }
+
+  function load() {
+    var ctl = new AbortController();
+    var timer = setTimeout(function () { ctl.abort(); }, 8000);
+
+    fetch(API, { signal: ctl.signal, cache: 'no-store' }) // use the abort controller, 8s response max. do not cache results.
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json(); //convert to json
+      })
+      .then(function (data) {
+        clearTimeout(timer); //stop timer, we got the data.
+        if (!Array.isArray(data) || data.length === 0) { // is it empty? if so, nothing to show.
+          status.hidden = false;
+          status.textContent = 'No flagged releases right now.';
+          tbl.hidden = true;
+          return;
+        }
+        body.replaceChildren.apply(body, data.map(create_row)); //replace all of the rows in the body with the new rows from the data
+        tbl.hidden = false;
+        status.hidden = true; // we can hide this
+        meta.textContent = 'updated ' + new Date().toLocaleTimeString(); // update the time we recorded.
+      })
+      .catch(function () { // rejection of promise
+        clearTimeout(timer); //stop timer
+        if (tbl.hidden) {
+          status.hidden = false;
+          status.textContent = 'Live feed unavailable right now.';
+        }
+        meta.textContent = '';
+      });
+  }
+
+  load();
+  setInterval(load, 300000);
+})();
+</script>
 
 </body>
 </html>
