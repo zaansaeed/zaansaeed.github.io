@@ -786,3 +786,34 @@ table.flagged tr:last-child td { border-bottom: none; }
   .flag { grid-template-columns: 1fr auto; padding-left: 0; }
   .flag-ago { display: none; }
 }
+
+/* homepage intro: photo on the left, name, links and bio on the right,
+   in the same 600px column as the sections below */
+header.intro {
+  max-width: 600px;
+  margin: 36px auto 48px;
+  padding: 0 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  text-align: left;
+}
+
+.intro img {
+  flex: none;
+  width: 110px;
+  height: auto;
+  border: 2px solid #444;
+  border-radius: 35%;
+}
+
+.intro h1.name { font-size: 2rem; }
+.intro .contact { margin: 4px 0 0; }
+.intro .bio { margin: 10px 0 0; font-size: inherit; color: inherit; }
+
+@media (max-width: 560px) {
+  header.intro { gap: 16px; margin-top: 24px; }
+  .intro img { width: 72px; }
+  .intro h1.name { font-size: 1.6rem; }
+  .intro .contact { font-size: 0.9rem; }
+}
