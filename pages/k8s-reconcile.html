@@ -181,7 +181,7 @@
   fetch('../data/k8s-replays.json')
     .then(function (r) { return r.json(); })
     .then(function (data) {
-      runs = data.runs;
+      runs = data.runs.reverse();
       runs.forEach(function (r) { picker.add(new Option(r.label)); });
       start();
     })
