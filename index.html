@@ -6,7 +6,7 @@
   <title>Zaan Saeed</title>
     <link rel="icon" href="./images/favicon.ico" type="image/x-icon">
 
-  <link rel="stylesheet" href="./style.css?v=6">
+  <link rel="stylesheet" href="./style.css?v=7">
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-65JQ38B1MN"></script>
 <script>
@@ -32,6 +32,10 @@
             <span class="featured-title">crotalus</span>
             <span class="featured-desc">Real-time supply-chain malware detection for PyPI. Scanning every new release
             within seconds of upload, with a live feed of what it is flagging right now.</span>
+            <span class="feed" id="feed" hidden>
+                <span class="feed-head"><span class="live-dot" aria-hidden="true"></span>Latest flags</span>
+                <span class="feed-rows" id="feed-rows"></span>
+            </span>
         </a>
     </section>
 
@@ -99,6 +103,81 @@
   particlesJS("particles-right", cfgRight);
 </script>
   
+
+<script>
+(function () {
+  var API = 'https://api.crotalus.xyz/flagged?limit=3';
+  var feed = document.getElementById('feed');
+  var rows = document.getElementById('feed-rows');
+  if (!feed) return;
+  var timer = null;
+
+  function ago(iso) {
+    var t = Date.parse(iso);
+    if (isNaN(t)) return '';
+    var s = Math.max(0, Math.round((Date.now() - t) / 1000));
+    if (s < 60) return s + 's ago';
+    var m = Math.round(s / 60);
+    if (m < 60) return m + 'm ago';
+    var h = Math.round(m / 60);
+    if (h < 48) return h + 'h ago';
+    return Math.round(h / 24) + 'd ago';
+  }
+
+  function span(cls, text) {
+    var el = document.createElement('span');
+    el.className = cls;
+    el.textContent = text;
+    return el;
+  }
+
+  function row(p) {
+    var r = document.createElement('span');
+    r.className = 'feed-row';
+    var v = String(p.final_verdict || 'unknown');
+    var verdict = span('feed-verdict', v.replace(/_/g, ' '));
+    verdict.setAttribute('data-v', v);
+    r.appendChild(span('feed-name', p.name));
+    r.appendChild(verdict);
+    r.appendChild(span('feed-ago', ago(p.first_seen_at)));
+    return r;
+  }
+
+  function load() {
+    var ctl = new AbortController();
+    var t = setTimeout(function () { ctl.abort(); }, 8000);
+    fetch(API, { signal: ctl.signal, cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        clearTimeout(t);
+        if (!Array.isArray(data) || data.length === 0) return;
+        rows.replaceChildren.apply(rows, data.slice(0, 3).map(row));
+        feed.hidden = false;
+      })
+      .catch(function () {
+        clearTimeout(t);
+      });
+  }
+
+  // Poll only while the tab is visible; refresh as soon as it becomes visible again.
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      clearInterval(timer);
+      timer = null;
+    } else if (!timer) {
+      load();
+      timer = setInterval(load, 300000);
+    }
+  });
+
+  // Always fetch once, even if the page opened in a background tab.
+  load();
+  if (!document.hidden) timer = setInterval(load, 300000);
+})();
+</script>
 
 </body>
 

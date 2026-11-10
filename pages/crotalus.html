@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>crotalus - Zaan Saeed</title>
-  <link rel="stylesheet" href="../style.css?v=6">
+  <link rel="stylesheet" href="../style.css?v=7">
   <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
 </head>
 <body>
@@ -198,8 +198,22 @@
       });
   }
 
+  var timer = null;
+
+  // Poll only while the tab is visible; refresh as soon as it becomes visible again.
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      clearInterval(timer);
+      timer = null;
+    } else if (!timer) {
+      load();
+      timer = setInterval(load, 300000);
+    }
+  });
+
+  // Always fetch once, even if the page opened in a background tab.
   load();
-  setInterval(load, 300000);
+  if (!document.hidden) timer = setInterval(load, 300000);
 })();
 </script>
 
