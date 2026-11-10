@@ -6,7 +6,7 @@
   <title>Zaan Saeed</title>
     <link rel="icon" href="./images/favicon.ico" type="image/x-icon">
 
-  <link rel="stylesheet" href="./style.css?v=10">
+  <link rel="stylesheet" href="./style.css?v=12">
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-65JQ38B1MN"></script>
 <script>
@@ -26,23 +26,30 @@
         <p class="contact"><a href="mailto:zaan.saeed3406@gmail.com">zaan.saeed3406@gmail.com</a> &middot; <a href="https://github.com/zaansaeed" target="_blank" rel="noopener">GitHub</a></p>
     </header>
     
-    <section id="newest">
-        <h2>Newest Project</h2>
-        <a class="featured" href="./pages/crotalus.html">
-            <span class="featured-title">crotalus</span>
-            <span class="featured-desc">Real-time supply-chain malware detection for PyPI. Scanning every new release
-            within seconds of upload, with a live feed of what it is flagging right now.</span>
-            <span class="feed" id="feed" hidden>
-                <span class="feed-head"><span class="live-dot" aria-hidden="true"></span>Latest flags</span>
-                <span class="feed-rows" id="feed-rows"></span>
-            </span>
-        </a>
-    </section>
-
     <section id="about">
         <h2>About Me</h2>
         <p>I’m a third year Computer Science and Physics student at   <a href="https://www.hmc.edu/" target="_blank">Harvey Mudd College</a>. 
           I like to build software at both ends of the stack: real-time distributed systems and machine learning models for physical and chemical systems.</p>
+    </section>
+
+    <section id="projects">
+        <h2>Projects</h2>
+        <div class="session">
+            <div class="session-head">
+                <span class="session-prompt">$ <a href="./pages/crotalus.html">crotalus</a> watch pypi</span>
+                <span class="session-live" id="watch-live" hidden>&#9679; live</span>
+            </div>
+            <div class="session-comment"># real-time malware detection for every new PyPI release</div>
+            <div id="watch-rows"></div>
+
+            <div class="ls">
+                <div class="session-prompt">$ ls -lt ~/projects</div>
+                <div class="ls-row"><span class="ls-date">Oct 2026</span><span class="ls-lang">go</span><a class="ls-name" href="./pages/k8s-reconcile.html">k8s-reconcile</a><span class="ls-desc">repairs broken k8s deployments</span></div>
+                <div class="ls-row"><span class="ls-date">Sep 2026</span><span class="ls-lang">py, go</span><a class="ls-name" href="./pages/crotalus.html">crotalus</a><span class="ls-desc">PyPI malware detection</span></div>
+                <div class="ls-row"><span class="ls-date">Jan 2026</span><span class="ls-lang">py</span><a class="ls-name" href="./pages/peptide-permeability-prediction.html">peptide-permeability</a><span class="ls-desc">ML for membrane permeability</span></div>
+                <div class="ls-row"><span class="ls-date">Sep 2024</span><span class="ls-lang">py</span><a class="ls-name" href="./pages/peptide-cyclization-prediction.html">peptide-cyclization</a><span class="ls-desc">ML for peptide cyclization</span></div>
+            </div>
+        </div>
     </section>
 
     <section id="experience">
@@ -58,19 +65,6 @@
                   hardware abstraction layer for their superconducting-qubit calibration platform. Picked up a lot of the underlying physics along the way, from dual-rail
                   qubits and quantum error correction to cavity resonance and FPGA-driven readout.</p>
             </li>
-        </ul>
-    </section>
-    
-    <section id="projects">
-        <h2>Projects</h2>
-        <ul>
-            <li><a href="./pages/k8s-reconcile.html">k8s-reconcile, an LLM Agent That Repairs Broken Kubernetes Deployments</a>
-                <span class="project-desc">A Go agent plus a benchmark of 160 graded runs.</span></li>
-            <li><a href="./pages/peptide-permeability-prediction.html">ML for the Prediction of Peptide Permeability</a>
-                <span class="project-desc">A Random Forest predicting membrane permeability for 2,054 cyclic peptides (R&sup2; = 0.78), plus a design tool that suggests monomers to hit a target permeability.</span></li>
-            <li><a href=./pages/peptide-cyclization-prediction.html>ML for the Prediction of Peptide Cyclization</a></li>
-            <li><a href="https://github.com/zaansaeed/zaansaeed.github.io">Personal Portfolio Website</a></li>
-
         </ul>
     </section>
  <script>
@@ -110,9 +104,9 @@
 <script>
 (function () {
   var API = 'https://api.crotalus.xyz/flagged?limit=3';
-  var feed = document.getElementById('feed');
-  var rows = document.getElementById('feed-rows');
-  if (!feed) return;
+  var rows = document.getElementById('watch-rows');
+  var live = document.getElementById('watch-live');
+  var loaded = false;
   var timer = null;
 
   function ago(iso) {
@@ -134,15 +128,16 @@
     return el;
   }
 
+  // One line of `crotalus watch` output: package, verdict, age.
   function row(p) {
-    var r = document.createElement('span');
-    r.className = 'feed-row';
+    var r = document.createElement('div');
+    r.className = 'flag';
     var v = String(p.final_verdict || 'unknown');
-    var verdict = span('feed-verdict', v.replace(/_/g, ' '));
+    var verdict = span('flag-verdict', v.replace(/_/g, ' '));
     verdict.setAttribute('data-v', v);
-    r.appendChild(span('feed-name', p.name));
+    r.appendChild(span('flag-name', p.name));
     r.appendChild(verdict);
-    r.appendChild(span('feed-ago', ago(p.first_seen_at)));
+    r.appendChild(span('flag-ago', ago(p.first_seen_at)));
     return r;
   }
 
@@ -156,12 +151,15 @@
       })
       .then(function (data) {
         clearTimeout(t);
-        if (!Array.isArray(data) || data.length === 0) return;
+        if (!Array.isArray(data) || data.length === 0) throw new Error('empty');
         rows.replaceChildren.apply(rows, data.slice(0, 3).map(row));
-        feed.hidden = false;
+        live.hidden = false;
+        loaded = true;
       })
       .catch(function () {
         clearTimeout(t);
+        // Keep the last rows if a refresh fails; only say so if nothing ever loaded.
+        if (!loaded) rows.replaceChildren(span('session-comment', '# live feed unavailable right now'));
       });
   }
 
