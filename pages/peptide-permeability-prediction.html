@@ -4,10 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prediction of Cyclic Peptide Membrane Permeability - Zaan Saeed</title>
-  <link rel="stylesheet" href="../style.css?v=7">
+  <link rel="stylesheet" href="../style.css?v=8">
   <link rel="icon" href="../images/protein.ico" type="image/x-icon">
   
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 </head>
@@ -21,10 +20,6 @@
     
     
     <section id="project-details">
-        <div style="display: flex; justify-content: center; align-items: center;">
-            <img src="../images/permeability_workflow.png" alt="Peptide permeability prediction workflow"
-                style="width: clamp(480px, 50vw, 860px); height: auto; margin: 12px auto 24px; border-radius: 10px; background: #ffffff; padding: 8px; border: 1px solid #ddd;">
-        </div>
         <h2>Project Overview</h2> 
         <p>This project predicts membrane permeability of cyclic hexapeptides using machine learning based on monomer LogP descriptors and chirality features. 
             Utilizing data from the Cyclic Peptide Membrane Permeability Database (CycPeptMPDB), we developed a Random Forest model that achieves strong predictive 
@@ -32,6 +27,15 @@
             by allowing users to specify positional constraints and target permeabilities, then generating viable monomer candidates that satisfy these criteria.
         </p>
         
+        <figure class="mol-figure" id="mol-figure">
+            <div class="mol-viewer" id="mol-viewer" role="img"
+                 aria-label="Interactive 3D model of the cyclic hexapeptide cyclo(Leu-D-Leu-Leu-Leu-D-Pro-Tyr)"></div>
+            <figcaption>
+            cyclo(Leu-D-Leu-Leu-Leu-D-Pro-Tyr), a cyclic hexapeptide. Drag to rotate, pinch to zoom.
+            Carbon grey, nitrogen blue, oxygen red, polar hydrogens white. Conformer generated with RDKit and MMFF94.
+            </figcaption>
+        </figure>
+
         <h3>Languages and Libraries Used</h3>
         <ul>
             <li><strong>Languages:</strong> Python</li>
@@ -95,6 +99,81 @@
            and functional goals (membrane permeability for cellular uptake).</p>
         
     </section>
+
+<script>
+(function () {
+  var figure = document.getElementById('mol-figure');
+  var box = document.getElementById('mol-viewer');
+  if (!figure || !box) return;
+
+  var LIB = 'https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.4.2/3Dmol-min.js';
+  var MODEL = '../data/cyclic-hexapeptide.pdb';
+  var COLORS = { prop: 'elem', map: { C: '#9aa7b4', N: '#4da6ff', O: '#ff6b6b', H: '#e6e6e6' } };
+
+  function fail(msg) {
+    box.textContent = msg;
+    box.classList.add('mol-failed');
+  }
+
+  // Let the mouse wheel scroll the page instead of zooming the model.
+  figure.addEventListener('wheel', function (e) { e.stopPropagation(); }, true);
+
+  function render(pdb) {
+    var viewer;
+    try {
+      viewer = $3Dmol.createViewer(box, { backgroundColor: '#0f1620' });
+    } catch (e) {
+      fail('3D view needs WebGL, which this browser does not have enabled.');
+      return;
+    }
+    viewer.addModel(pdb, 'pdb', { keepH: true });
+    viewer.setStyle({}, {
+      stick: { radius: 0.16, colorscheme: COLORS },
+      sphere: { scale: 0.22, colorscheme: COLORS }
+    });
+    viewer.zoomTo();
+    viewer.zoom(1.1);
+    viewer.render();
+
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduce) {
+      viewer.spin('y', 0.4);
+      var stop = function () { viewer.spin(false); };
+      box.addEventListener('pointerdown', stop, { once: true });
+      box.addEventListener('touchstart', stop, { once: true, passive: true });
+    }
+  }
+
+  function load() {
+    var script = document.createElement('script');
+    script.src = LIB;
+    script.onerror = function () { fail('3D view could not load.'); };
+    script.onload = function () {
+      fetch(MODEL)
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.text();
+        })
+        .then(render)
+        .catch(function () { fail('3D view could not load.'); });
+    };
+    document.head.appendChild(script);
+  }
+
+  // The library is ~500 KB, so only fetch it once the viewer is about to scroll into view.
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) {
+        io.disconnect();
+        load();
+      }
+    }, { rootMargin: '200px' });
+    io.observe(box);
+  } else {
+    load();
+  }
+})();
+</script>
 
 </body>
 </html>

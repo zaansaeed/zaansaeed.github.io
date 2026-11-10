@@ -655,3 +655,49 @@ table.flagged tr:last-child td { border-bottom: none; }
   color: #9aa7b4;
   white-space: nowrap;
 }
+
+/* one-line description under a project link */
+.project-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.85rem;
+  color: #9aa7b4;
+}
+
+/* interactive 3D molecule */
+.mol-figure {
+  margin: 20px 0 24px;
+}
+
+.mol-viewer {
+  position: relative;
+  width: 100%;
+  height: 340px;
+  border: 1px solid #25303d;
+  border-radius: 4px;
+  background: #0f1620;
+  cursor: grab;
+}
+
+.mol-viewer:active { cursor: grabbing; }
+
+.mol-viewer.mol-failed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+  padding: 24px;
+  color: #9aa7b4;
+  font-size: 0.85rem;
+  cursor: default;
+}
+
+.mol-figure figcaption {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: #9aa7b4;
+}
+
+@media (max-width: 560px) {
+  .mol-viewer { height: 260px; }
+}
