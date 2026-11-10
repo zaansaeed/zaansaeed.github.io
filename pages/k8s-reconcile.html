@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>k8s-reconcile - Zaan Saeed</title>
+  <link rel="stylesheet" href="../style.css?v=10">
+  <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <header>
+        <h1 class="name">k8s-reconcile</h1>
+        <nav>
+            <a href="../index.html">← Back to Home</a>
+        </nav>
+    </header>
+
+    <section id="project-details">
+
+        <h2>Project Overview</h2>
+        <p>
+        k8s-reconcile is an LLM agent that diagnoses and repairs broken Kubernetes deployments, plus a benchmark
+        that measures how well different models do it and what it costs. The agent gets one namespace with
+        something wrong in it, investigates with a few read-only tools, and explains the root cause. With writes
+        enabled, it also patches the broken Deployment and checks that the rollout recovered.
+        </p>
+        <p>
+        Across 160 graded runs, Claude Opus passed all 40 repairs. Claude Haiku passed 37 of 40 at about 1/25 of
+        the cost per passing repair, and every Haiku miss was on the hardest tier, where the cause sits in the
+        healthy-looking side of a client&ndash;server pair.
+        </p>
+
+        <h3>Replay a Run</h3>
+        <p>
+        These are real runs from the benchmark, replayed from the recorded transcript: what the model said, the
+        tools it called, and what the cluster returned. Pick a run, then press Enter to step through it.
+        </p>
+
+        <div class="term" id="term" tabindex="0" role="region"
+             aria-label="Replay of a recorded agent run. Press Enter for the next step.">
+            <div class="term-bar">
+                <label for="term-run" class="term-label">run</label>
+                <select id="term-run" class="term-select"></select>
+            </div>
+            <div class="term-body" id="term-body" aria-live="polite"></div>
+            <div class="term-foot">
+                <span class="term-hint" id="term-hint">click here, then press Enter</span>
+                <button type="button" class="term-next" id="term-next">next &crarr;</button>
+            </div>
+        </div>
+
+        <h3>Results</h3>
+        <p>Passes out of 10 per tier, graded by an LLM judge against an answer key.</p>
+        <div class="results-wrap">
+            <table class="results-table">
+                <thead>
+                    <tr><th>Tier</th><th>Haiku diagnose</th><th>Haiku repair</th><th>Opus diagnose</th><th>Opus repair</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1 <code>bad-image</code></td><td>7</td><td>10</td><td>10</td><td>10</td></tr>
+                    <tr><td>2 <code>unschedulable</code></td><td>8</td><td>10</td><td>10</td><td>10</td></tr>
+                    <tr><td>3 <code>multi-fault</code></td><td>6</td><td>10</td><td>10</td><td>10</td></tr>
+                    <tr><td>4 <code>cache-port</code></td><td>1</td><td>7</td><td>6</td><td>10</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <ul>
+            <li><strong>Repair beats diagnosis.</strong> A diagnosis only has to sound right; a repair has to survive the rollout check, which turns a wrong idea into a failure the model can read and correct. Haiku goes from 55% diagnosing to 93% repairing.</li>
+            <li><strong>Cost.</strong> $0.0014 per passing Haiku repair versus $0.0343 for Opus. All 160 agent runs cost $2.24.</li>
+            <li><strong>Caching.</strong> Caching the tool and system-prompt prefix plus the conversation history cut agent cost by 53%.</li>
+        </ul>
+
+        <h3>How It Works</h3>
+        <ul>
+            <li><strong>One namespace:</strong> every tool is bound to a single namespace when the toolbox is built, so the model can't reach anything else. It sees Deployments, Pods, events, and logs, but not Services, ConfigMaps, or Secrets, and it has no shell.</li>
+            <li><strong>Compact tools:</strong> <code>get_pods</code>, <code>get_events</code>, <code>get_deployments</code>, and <code>get_logs</code> return short text summaries instead of raw JSON, so each result costs hundreds of tokens rather than thousands.</li>
+            <li><strong>Guarded writes:</strong> <code>apply_patch</code> is off by default. Patches are size-limited, restricted to <code>spec.template</code>, dry-run on the server, and audit-logged.</li>
+            <li><strong>Rollout check:</strong> after a patch, the agent watches the new pods and gets back a verdict. That is what lets it catch and undo a wrong fix.</li>
+            <li><strong>Benchmark and judge:</strong> each tier recreates its fault from a manifest, runs the agent, and records every step. An LLM judge grades the transcript against an answer key listing the faults, the correct fixes, and the tempting wrong ones.</li>
+        </ul>
+
+        <h3>Languages and Tools Used</h3>
+        <ul>
+            <li><strong>Language:</strong> Go</li>
+            <li><strong>Kubernetes:</strong> client-go, kind</li>
+            <li><strong>LLM:</strong> Claude API via the Anthropic Go SDK, with prompt caching</li>
+        </ul>
+
+        <h3>Links</h3>
+        <ul>
+            <li><a href="https://github.com/zaansaeed/k8s-reconcile" target="_blank" rel="noopener">View on GitHub</a></li>
+        </ul>
+
+    </section>
+
+<script>
+// Replays recorded k8s-reconcile runs from data/k8s-replays.json.
+// Each line there is [kind, text]; the kind picks the .tl-<kind> color in style.css.
+(function () {
+  var runs;
+  var term = document.getElementById('term');
+  var body = document.getElementById('term-body');
+  var picker = document.getElementById('term-run');
+  var hint = document.getElementById('term-hint');
+  var nextBtn = document.getElementById('term-next');
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var touch = matchMedia('(pointer: coarse)').matches;
+  var run, pos, done;
+  var queue = [], timer = null, delay = 22;
+
+  function flush() {
+    clearTimeout(timer);
+    timer = null;
+    while (queue.length) body.appendChild(queue.shift());
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function pump() {
+    if (!queue.length) { timer = null; return; }
+    body.appendChild(queue.shift());
+    body.scrollTop = body.scrollHeight;
+    timer = setTimeout(pump, delay);
+  }
+
+  // Print line by line, but never take more than ~350ms for one step.
+  function print(lines) {
+    lines.forEach(function (l) {
+      var d = document.createElement('div');
+      d.className = 'tl' + (l[0] ? ' tl-' + l[0] : '');
+      d.textContent = l[1];
+      queue.push(d);
+    });
+    if (reduce) return flush();
+    delay = Math.min(22, 350 / queue.length);
+    if (!timer) pump();
+  }
+
+  function setHint() {
+    hint.textContent = touch ? (done ? 'end of run' : 'tap next to step through')
+      : done ? 'end of run · Enter to replay'
+      : term.contains(document.activeElement) ? 'Enter for the next step'
+      : 'click here, then press Enter';
+    nextBtn.textContent = done ? 'replay ↵' : 'next ↵';
+  }
+
+  function start() {
+    flush();
+    run = runs[picker.selectedIndex];
+    pos = 0;
+    done = false;
+    body.replaceChildren();
+    print(run.intro);
+    setHint();
+  }
+
+  function next() {
+    flush();  // finish printing the current step, then advance
+    if (done) return start();
+    print(run.steps[pos++]);
+    if (pos === run.steps.length) {
+      print(run.end);
+      done = true;
+    }
+    setHint();
+  }
+
+  term.addEventListener('keydown', function (e) {
+    if (e.target !== picker && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      next();
+    }
+  });
+  term.addEventListener('click', function (e) {
+    if (e.target !== picker && e.target !== nextBtn) term.focus({ preventScroll: true });
+  });
+  term.addEventListener('focusin', setHint);
+  term.addEventListener('focusout', setHint);
+  nextBtn.addEventListener('click', function () { next(); term.focus({ preventScroll: true }); });
+  picker.addEventListener('change', function () { start(); term.focus({ preventScroll: true }); });
+
+  fetch('../data/k8s-replays.json')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      runs = data.runs;
+      runs.forEach(function (r) { picker.add(new Option(r.label)); });
+      start();
+    })
+    .catch(function () { body.textContent = 'replay data could not load.'; });
+})();
+</script>
+
+</body>
+</html>
